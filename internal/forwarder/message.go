@@ -22,7 +22,21 @@ func NewMessage(name string) Message {
 }
 
 func (m Message) BuildQuery() string {
-	return m.Header.String() + m.Question[0].String()
+	queryBuilder := strings.Builder{}
+	queryBuilder.WriteString(m.Header.String())
+	for _, q := range m.Question {
+		queryBuilder.WriteString(q.String())
+	}
+	for _, an := range m.Answer {
+		queryBuilder.WriteString(an.String())
+	}
+	for _, au := range m.Authority {
+		queryBuilder.WriteString(au.String())
+	}
+	for _, ad := range m.Additional {
+		queryBuilder.WriteString(ad.String())
+	}
+	return queryBuilder.String()
 }
 
 func (m Message) ValidateResponse(response []byte) bool {
@@ -63,11 +77,11 @@ func (m Message) Print() string {
 		str.WriteString(";; AUTHORITY: 0\n")
 	} else {
 		for _, a := range m.Authority {
-		str.WriteString(a.Print() + "\n")
+		str.WriteString(";; AUTHORITY SECTION:\n" + a.Print() + "\n")
 		}
 	}
 	if len(m.Additional) == 0 {
-		str.WriteString("; ADDITIONAL: 0\n")
+		str.WriteString(";; ADDITIONAL: 0\n")
 	} else {
 		for _, a := range m.Additional {
 		str.WriteString(";; ADDITIONAL SECTION:\n" + a.Print() + "\n")

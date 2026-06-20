@@ -84,14 +84,14 @@ func ParseResourceRecord(b []byte, count, offset int) (rr []ResourceRecord, newO
 		dataLength := binary.BigEndian.Uint16(b[nOffset+8 : nOffset+10])
 		var data string
 		switch recordType {
-		case 0x01:
+		case A:
 			ip, ok := netip.AddrFromSlice(b[nOffset+10 : nOffset+14])
 			if ok {
 				data = ip.String()
 			}
-		case 0x02, 0x05:
+		case NS, CNAME:
 			data, _ = DecodeDomainName(b, nOffset+10)
-		case 0x1c:
+		case AAAA:
 			ip, ok := netip.AddrFromSlice(b[nOffset+10 : nOffset+26])
 			if ok {
 				data = ip.String()
@@ -109,10 +109,35 @@ func ParseResourceRecord(b []byte, count, offset int) (rr []ResourceRecord, newO
 func (rr ResourceRecord) Print() string {
 	switch rr.RecordType {
 	case A:
-		return fmt.Sprintf("; %s\t %d\t %s\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class), rr.Data)
+		return fmt.Sprintf(" ; %s\t %d\t %s\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class), rr.Data)
 	case OPT:
-		return fmt.Sprintf("; %s\t %d\t %s\t %d\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), rr.DataLength, rr.Data)
+		return fmt.Sprintf(" ; %s\t %d\t %s\t %d\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), rr.DataLength, rr.Data)
 	default:
-		return fmt.Sprintf("; %s\t %d\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class))
+		return fmt.Sprintf(" ; %s\t %d\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class))
 	}	
+}
+
+func (rr ResourceRecord) String() string {
+	recordType := fmt.Sprintf("%04x", rr.RecordType)
+	class := fmt.Sprintf("%04x", rr.Class)
+	ttl := fmt.Sprintf("%08x", rr.TTL)
+	dataLength := fmt.Sprintf("%04x", rr.DataLength)
+	data := ""
+	switch rr.RecordType {
+	case A:
+		ip, ok := netip.AddrFromSlice([]byte(rr.Data))
+		if ok {
+			data = hex.EncodeToString(ip.AsSlice())
+		}
+	case NS, CNAME:
+		data = EncodeDomainName(rr.Data)
+	case AAAA:
+		ip, ok := netip.AddrFromSlice([]byte(rr.Data))
+		if ok {
+			data = hex.EncodeToString(ip.AsSlice())
+		}
+	default:
+		data = rr.Data
+	}
+	return EncodeDomainName(rr.Name) + recordType + class + ttl + dataLength + data
 }
