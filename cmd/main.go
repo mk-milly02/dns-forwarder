@@ -13,8 +13,10 @@ import (
 const DEFAULT_LOCAL_NAME_SERVER = "127.0.0.1"
 const DEFAULT_PORT = 53
 
+var port = flag.Int("p", DEFAULT_PORT, "specified port for incomming requests")
+var debug = flag.Bool("d", false, "enable debug mode")
+
 func main() {
-	port := flag.Int("p", DEFAULT_PORT, "specified port for incomming requests")
 	flag.Parse()
 
 	if *port != 53 && *port <= 1023 {
@@ -31,29 +33,33 @@ func main() {
 		log.Fatal("listen failed", err)
 	}
 	defer connection.Close()
-	log.Printf("listening on <<>> @%s -p %s\n\n", DEFAULT_LOCAL_NAME_SERVER, strconv.Itoa(*port))
+	log.Printf("listening on <<>> @%s:%s\n\n", DEFAULT_LOCAL_NAME_SERVER, strconv.Itoa(*port))
 
 	message := make([]byte, 1024)
 	for {
-		n, clientAddr, err := connection.ReadFromUDP(message)
+		_, clientAddr, err := connection.ReadFromUDP(message)
 		if err != nil {
 			log.Printf("read error: %v", err)
 			continue
 		}
 
-		log.Printf("message from <<>> %s\n\n", clientAddr)
-
 		var query forwarder.Message
 		query.ParseQueryMessage(message)
-		fmt.Printf("%s", query.Print())
+		if debug != nil && *debug {
+			fmt.Printf("%s", query.Print())
+		}
+		for _, q := range query.Question {
+			log.Printf("query[%s] %s from <<>> %s\n\n", q.GetType(), q.GetName(), clientAddr)
+		}
 
 		request := query.BuildQuery()
 		hex_req, err := hex.DecodeString(request)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		log.Printf("forwarding %s to %s\n", query.Question[0].GetName(), forwarder.GOOGLE_DNS_SERVER)
+		for _, q := range query.Question {
+			log.Printf("forwarded %s to <<>> %s:%s\n\n", q.GetName(), forwarder.GOOGLE_DNS_SERVER, forwarder.DEFAULT_PORT)
+		}
 
 		res, err := forwarder.SendRequestTo(hex_req, forwarder.GOOGLE_DNS_SERVER)
 		if err != nil {
@@ -66,9 +72,14 @@ func main() {
 
 		var response forwarder.Message
 		response.ParseQueryMessage(res)
-		fmt.Printf("%s", response.Print())
+		if debug != nil && *debug {
+			fmt.Printf("%s", response.Print())
+		}
+		for _, r := range response.Answer {
+			log.Printf("response[%s] %s is %s\n\n", r.GetType(), r.Name, r.Data)
+		}
 
-		_, err = connection.WriteToUDP(message[:n], clientAddr)
+		_, err = connection.WriteToUDP(res, clientAddr)
 		if err != nil {
 			log.Printf("write error: %v", err)
 		}

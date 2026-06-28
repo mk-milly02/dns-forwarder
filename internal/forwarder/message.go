@@ -62,30 +62,46 @@ func (m *Message) ParseQueryMessage(content []byte) {
 
 func (m Message) Print() string {
 	var str strings.Builder
-	str.WriteString(m.Header.Print() + "\n")
-	for _, q := range m.Question {
-		str.WriteString(q.Print() + "\n")
+	str.WriteString(m.Header.Print() + "\n\n")
+	if len(m.Question) == 0 {
+		str.WriteString(";; QUESTIONS: 0\n")
+	} else {
+		str.WriteString(";; QUESTION SECTION:\n")
+		for _, q := range m.Question {
+			str.WriteString(q.Print())
+		}
+	    str.WriteString("\n\n")
 	}
+	
 	if len(m.Answer) == 0 {
 		str.WriteString(";; ANSWERS: 0\n")
 	} else {
+		str.WriteString(";; ANSWER SECTION:\n")
 		for _, a := range m.Answer {
-		str.WriteString(";; ANSWER SECTION:\n" + a.Print() + "\n")
+		str.WriteString(a.Print())
 		}
+		str.WriteString("\n")
 	}
+
 	if len(m.Authority) == 0 {
 		str.WriteString(";; AUTHORITY: 0\n")
 	} else {
+		str.WriteString(";; AUTHORITY SECTION:\n")
 		for _, a := range m.Authority {
-		str.WriteString(";; AUTHORITY SECTION:\n" + a.Print() + "\n")
+		str.WriteString(a.Print())
 		}
+		str.WriteString("\n")
 	}
+
 	if len(m.Additional) == 0 {
-		str.WriteString(";; ADDITIONAL: 0\n")
+		str.WriteString(";; ADDITIONAL: 0\n\n")
 	} else {
+		str.WriteString(";; ADDITIONAL SECTION:\n")
 		for _, a := range m.Additional {
-		str.WriteString(";; ADDITIONAL SECTION:\n" + a.Print() + "\n")
+		str.WriteString(a.Print())
 		}
+		str.WriteString("\n")
 	}
+
 	return str.String()
 }

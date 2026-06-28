@@ -141,3 +141,7 @@ func (rr ResourceRecord) String() string {
 	}
 	return EncodeDomainName(rr.Name) + recordType + class + ttl + dataLength + data
 }
+
+func (rr ResourceRecord) GetType() string {
+	return GetResourceRecordType(rr.RecordType)
+}

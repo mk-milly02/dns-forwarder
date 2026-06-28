@@ -14,7 +14,7 @@ type Question struct {
 }
 
 func (q Question) Print() string {
-	return fmt.Sprintf(";; QUESTION SECTION:\n ; %s,\t \ttype: %s, \tclass: %s", q.name, GetResourceRecordType(q.recordType), GetResourceRecordClass(q.class))
+	return fmt.Sprintf(" ; %s,\t \ttype: %s, \tclass: %s", q.name, GetResourceRecordType(q.recordType), GetResourceRecordClass(q.class))
 }
 
 func (q Question) String() string {
@@ -23,6 +23,10 @@ func (q Question) String() string {
 
 func (q Question) GetName() string {
 	return q.name
+}
+
+func (q Question) GetType() string {
+	return GetResourceRecordType(q.recordType)
 }
 
 func ParseQuestion(b []byte, qcount, offset int) ([]Question, int) {
