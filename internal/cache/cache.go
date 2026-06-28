@@ -2,7 +2,6 @@ package cache
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -15,7 +14,7 @@ type cEntry struct {
 }
 
 // cache represents the in-memory cache, containing a map of entries, a mutex for thread safety, and a cleaner for periodic cleanup.
-type cache struct {
+type Cache struct {
 	entries map[string]*cEntry
 	cleaner *cleaner
 	mutex   sync.Mutex
@@ -28,32 +27,28 @@ type cleaner struct {
 	cleanUpInterval time.Duration
 }
 
-// cacheService provides a higher-level interface for interacting with the cache, allowing for resource-specific caching.
-type cacheService struct {
-	cache *cache
-}
-
-// new creates a new cache instance with the specified expiration time and cleanup interval, and starts the cleaner goroutine.
-func new(expirationTime time.Duration, cleanUpInterval time.Duration) *cache {
-	cache := &cache{
+// NewCache creates a new cache instance with the specified expiration time and cleanup interval, and starts the cleaner goroutine.
+func NewCache(expirationTime time.Duration, cleanUpInterval time.Duration) *Cache {
+	cache := &Cache{
 		entries: make(map[string]*cEntry),
 		ttl:     expirationTime,
 		cleaner: &cleaner{exitChannel: make(chan int), cleanUpInterval: cleanUpInterval},
 	}
 	go cache.cleaner.Run(cache)
+	log.Printf("active cache -> with expiration time: %s and cleanup interval: %s\n", expirationTime, cleanUpInterval)
 	return cache
 }
 
-// put adds a new entry to the cache with the specified key and value, along with the current timestamp.
-func (cache *cache) put(key string, value any) {
+// Put adds a new entry to the cache with the specified key and value, along with the current timestamp.
+func (cache *Cache) Put(key string, value any) {
 	log.Printf("cache put: key: %s, value: %+v\n", key, value)
 	cache.mutex.Lock()
 	cache.entries[key] = &cEntry{entry: value, timestamp: time.Now()}
 	cache.mutex.Unlock()
 }
 
-// get retrieves an entry from the cache by its key. If the entry is not present, it returns an error.
-func (cache *cache) get(key string) (any, error) {
+// Get retrieves an entry from the cache by its key. If the entry is not present, it returns an error.
+func (cache *Cache) Get(key string) (any, error) {
 	cache.mutex.Lock()
 	defer cache.mutex.Unlock()
 	result, present := cache.entries[key]
@@ -63,16 +58,16 @@ func (cache *cache) get(key string) (any, error) {
 	return result.entry, nil
 }
 
-// delete removes an entry from the cache by its key.
-func (cache *cache) delete(key string) {
+// Remove removes an entry from the cache by its key.
+func (cache *Cache) Remove(key string) {
 	log.Printf("cache delete: key: %s\n", key)
 	cache.mutex.Lock()
 	delete(cache.entries, key)
 	cache.mutex.Unlock()
 }
 
-// clean iterates through the cache entries and removes any that have expired based on the current time and the cache's TTL.
-func (cache *cache) clean(currentTime time.Time) {
+// Clean iterates through the cache entries and removes any that have expired based on the current time and the cache's TTL.
+func (cache *Cache) Clean(currentTime time.Time) {
 	log.Println("running cache cleanup...")
 	cache.mutex.Lock()
 	defer cache.mutex.Unlock()
@@ -84,29 +79,13 @@ func (cache *cache) clean(currentTime time.Time) {
 	}
 }
 
-// CacheResource checks if a resource is present in the cache. If it is, it returns the cached value. 
-// If not, it calls the provided function to retrieve the resource, caches it, and then returns the value.
-func (cs *cacheService) CacheResource(f func() (any, error), resource string, key string) (any, error) {
-   fullKey := fmt.Sprintf("%s-%s", resource, key)
-   cached, cacheErr := cs.cache.get(fullKey)
-   if cacheErr == nil {
-    log.Printf("cache hit: key: %s, value: %+v\n", fullKey, cached)
-    return cached, nil
-   }
-   fnRes, fnErr := f()
-   if fnErr == nil {
-    cs.cache.put(fullKey, fnRes)
-   }
-   return fnRes, fnErr
-}
-
 // Run starts the cleaner goroutine, which periodically checks for expired cache entries and removes them.
-func (cleaner *cleaner) Run(c *cache) {
+func (cleaner *cleaner) Run(c *Cache) {
     ticker := time.NewTicker(cleaner.cleanUpInterval)
     for {
         select {
         case currentTime := <-ticker.C:
-            c.clean(currentTime)
+            c.Clean(currentTime)
         case <-cleaner.exitChannel:
             return
         }
