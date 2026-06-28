@@ -37,14 +37,14 @@ func main() {
 
 	message := make([]byte, 1024)
 	for {
-		_, clientAddr, err := connection.ReadFromUDP(message)
+		n, clientAddr, err := connection.ReadFromUDP(message)
 		if err != nil {
 			log.Printf("read error: %v", err)
 			continue
 		}
 
 		var query forwarder.Message
-		query.ParseQueryMessage(message)
+		query.ParseQueryMessage(message[:n])
 		if debug != nil && *debug {
 			fmt.Printf("%s", query.Print())
 		}

@@ -37,9 +37,9 @@ func SendRequestTo(query []byte, nameServer string) ([]byte, error) {
 		return nil, err
 	}
 	response := make([]byte, 1024)
-	_, err = conn.Read(response)
+	n, err := conn.Read(response)
 	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response[:n], nil
 }
