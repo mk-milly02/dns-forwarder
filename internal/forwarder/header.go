@@ -31,13 +31,12 @@ type Flags struct {
 }
 
 func (f Flags) String() string {
-	return fmt.Sprintf("%016b", (
-		uint16(f.qr)<<15)|(uint16(f.opcode)<<11)|(uint16(f.aa)<<10)|(uint16(f.tc)<<9)|
+	return fmt.Sprintf("%016b", (uint16(f.qr)<<15)|(uint16(f.opcode)<<11)|(uint16(f.aa)<<10)|(uint16(f.tc)<<9)|
 		(uint16(f.rd)<<8)|(uint16(f.ra)<<7)|(uint16(f.z)<<4)|uint16(f.rcode))
 }
 
 func parseFlags(f uint16) Flags {
-	return Flags {
+	return Flags{
 		qr:     uint8((f >> 15) & 0x1),
 		opcode: uint8((f >> 11) & 0xF),
 		aa:     uint8((f >> 10) & 0x1),
@@ -141,4 +140,14 @@ func NewHeaderWithParams(id uint16, flags Flags, queries, answers, authorities, 
 		authorities: authorities,
 		additions:   additions,
 	}
+}
+
+// AddQuery increments the number of queries in the header by 1. This is used when adding a new question to the DNS message.
+func (h *Header) AddQuery() {
+	h.queries++
+}
+
+// AddAnswer increments the number of answers in the header by 1. This is used when adding a new answer to the DNS message.
+func (h *Header) AddAnswer() {
+	h.answers++
 }
