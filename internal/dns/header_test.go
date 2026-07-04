@@ -1,7 +1,7 @@
-package forwarder_test
+package dns_test
 
 import (
-	"north-polaris/internal/forwarder"
+	"north-polaris/internal/dns"
 	"testing"
 )
 
@@ -58,7 +58,7 @@ func TestFlags_String(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := forwarder.NewFlags(tt.qr, tt.opcode, tt.aa, tt.tc, tt.rd, tt.ra, tt.z, tt.rcode)
+			f := dns.NewFlags(tt.qr, tt.opcode, tt.aa, tt.tc, tt.rd, tt.ra, tt.z, tt.rcode)
 			got := f.String()
 			if got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)
@@ -71,22 +71,22 @@ func TestHeader_String(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
-		header forwarder.Header
+		header dns.Header
 		want   string
 	}{
 		{
 			name:   "Be",
-			header: forwarder.NewHeaderWithParams(uint16(33395), forwarder.NewFlags(0, 0, 0, 0, 1, 1, 0, 0), 1, 1, 0, 0),
+			header: dns.NewHeaderWithParams(uint16(33395), dns.NewFlags(0, 0, 0, 0, 1, 1, 0, 0), 1, 1, 0, 0),
 			want:   "827301800001000100000000",
 		},
 		{
 			name:   "B",
-			header: forwarder.NewHeaderWithParams(uint16(63506), forwarder.NewFlags(1, 0, 0, 0, 1, 1, 0, 0), 1, 10, 0, 0),
+			header: dns.NewHeaderWithParams(uint16(63506), dns.NewFlags(1, 0, 0, 0, 1, 1, 0, 0), 1, 10, 0, 0),
 			want:   "f81281800001000a00000000",
 		},
 		{
 			name:   "C",
-			header: forwarder.NewHeaderWithParams(uint16(33395), forwarder.NewFlags(0, 0, 0, 0, 1, 0, 0, 0), 1, 10, 0, 1),
+			header: dns.NewHeaderWithParams(uint16(33395), dns.NewFlags(0, 0, 0, 0, 1, 0, 0, 0), 1, 10, 0, 1),
 			want:   "827301000001000a00000001",
 		},
 	}

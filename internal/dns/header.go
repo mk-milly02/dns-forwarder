@@ -1,4 +1,4 @@
-package forwarder
+package dns
 
 import (
 	"encoding/binary"
@@ -135,7 +135,6 @@ func ParseHeader(b []byte) (Header, int) {
 	}, 12
 }
 
-// ValidateResponse checks if the response message has the same transaction ID as the original query,
 func newTransactionID() uint16 {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return uint16(r.Intn(16))
@@ -160,21 +159,4 @@ func NewHeaderWithParams(id uint16, flags Flags, queries, answers, authorities, 
 		authorities: authorities,
 		additions:   additions,
 	}
-}
-
-// AddQuery increments the number of queries in the header by 1. This is used when adding a new question to the DNS message.
-func (h *Header) AddQuery() {
-	h.queries++
-}
-
-// RemoveQuery decrements the number of queries in the header by 1. This is used when removing a question from the DNS message.
-func (h *Header) RemoveQuery() {
-	if h.queries > 0 {
-		h.queries--
-	}
-}
-
-// AddAnswer increments the number of answers in the header by 1. This is used when adding a new answer to the DNS message.
-func (h *Header) AddAnswer() {
-	h.answers++
 }

@@ -1,4 +1,4 @@
-package forwarder
+package dns
 
 import (
 	"encoding/binary"

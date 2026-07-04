@@ -1,4 +1,4 @@
-package forwarder
+package dns
 
 import (
 	"encoding/binary"
@@ -111,7 +111,7 @@ func (rr ResourceRecord) Print() string {
 	case A:
 		return fmt.Sprintf(" ; %s\t %d\t %s\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class), rr.Data)
 	case OPT:
-		return fmt.Sprintf(" ; %s\t %d\t %s\t %d\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), rr.DataLength, rr.Data)
+		return fmt.Sprintf(" ; %s\t %d\t %s\t udp: %d\t\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), int(rr.Class))
 	default:
 		return fmt.Sprintf(" ; %s\t %d\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class))
 	}	
