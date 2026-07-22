@@ -89,6 +89,11 @@ func TestHeader_String(t *testing.T) {
 			header: dns.NewHeaderWithParams(uint16(33395), dns.NewFlags(0, 0, 0, 0, 1, 0, 0, 0), 1, 10, 0, 1),
 			want:   "827301000001000a00000001",
 		},
+		{
+			name:   "N",
+			header: dns.NewHeaderWithParams(0x0002, dns.NewFlags(0, 0, 0, 0, 0, 1, 0, 0), 1, 0, 0, 0),
+			want:   "000200800001000000000000",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
