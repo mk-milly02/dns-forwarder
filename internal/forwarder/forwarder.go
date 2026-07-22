@@ -16,6 +16,7 @@ const DEFAULT_NAME_SERVER = "198.41.0.4"
 const GOOGLE_DNS_SERVER = "8.8.8.8"
 const DEFAULT_PORT = "53"
 
+// send sends a DNS request to the specified server and returns the response.
 func send(req []byte, server string) ([]byte, error) {
 	conn, err := net.Dial("udp", server+":"+DEFAULT_PORT)
 	if err != nil {
@@ -34,6 +35,7 @@ func send(req []byte, server string) ([]byte, error) {
 	return response[:n], nil
 }
 
+// forward forwards a DNS question to the specified server and returns the answer resource records.
 func forward(question dns.Question, header dns.Header) []dns.ResourceRecord {
 	log.Printf("forwarding [%s - %s] to <<>> %s:%s\n", question.GetType(), question.GetName(), GOOGLE_DNS_SERVER, DEFAULT_PORT)
 	request := dns.NewMessage(question, header)
@@ -59,6 +61,8 @@ func forward(question dns.Question, header dns.Header) []dns.ResourceRecord {
 	return response.AnswerRRs
 }
 
+// recursive handles the case where the DNS response does not contain any answer resource records but contains authority resource records. 
+// It attempts to find a name server from the additional resource records and forwards the query to that name server.
 func recursive(m *dns.Message, query []byte, domain string) {
 	if len(m.AnswerRRs) == 0 && len(m.AuthorityRRs) != 0 {
 		var nServer string
@@ -82,6 +86,7 @@ func recursive(m *dns.Message, query []byte, domain string) {
 	}
 }
 
+// HandleRequest handles a DNS request, checks the cache for answers, and forwards the request if necessary. It returns the response to the client.
 func HandleRequest(req []byte, c *server.Cache, clientAddress net.Addr) (res []byte) {
 	var request, response dns.Message
 	request.ParseMessage(req)

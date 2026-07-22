@@ -135,6 +135,7 @@ func ParseHeader(b []byte) (Header, int) {
 	}, 12
 }
 
+// newTransactionID generates a new random transaction ID for DNS messages, which is a 16-bit unsigned integer.
 func newTransactionID() uint16 {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return uint16(r.Intn(16))

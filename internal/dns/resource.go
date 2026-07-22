@@ -8,6 +8,7 @@ import (
 	"net/netip"
 )
 
+// Resource record types
 const (
 	A     = 0x01
 	NS    = 0x02
@@ -20,6 +21,7 @@ const (
 	OPT   = 0x29
 )
 
+// Resource record classes
 const (
 	IN = 0x01
 	CS = 0x02
@@ -27,6 +29,7 @@ const (
 	HS = 0x04
 )
 
+// GetResourceRecordType returns the string representation of the resource record type based on the provided type value.
 func GetResourceRecordType(recordType uint16) string {
 	switch recordType {
 	case A:
@@ -52,6 +55,7 @@ func GetResourceRecordType(recordType uint16) string {
 	}
 }
 
+// GetResourceRecordClass returns the string representation of the resource record class based on the provided class value.
 func GetResourceRecordClass(class uint16) string {
 	switch class {
 	case IN:
@@ -67,6 +71,7 @@ func GetResourceRecordClass(class uint16) string {
 	}
 }
 
+// ResourceRecord represents a DNS resource record, containing information such as the name, type, class, TTL, data length, and data.
 type ResourceRecord struct {
 	Name       string
 	RecordType uint16
@@ -76,6 +81,8 @@ type ResourceRecord struct {
 	Data       string
 }
 
+// ParseResourceRecord parses the resource records from the provided byte slice, starting at the given offset, 
+// and returns a slice of ResourceRecord along with the new offset after parsing.
 func ParseResourceRecord(b []byte, count, offset int) (rr []ResourceRecord, newOffset int) {
 	for range count {
 		name, nOffset := DecodeDomainName(b, offset)
@@ -107,6 +114,7 @@ func ParseResourceRecord(b []byte, count, offset int) (rr []ResourceRecord, newO
 	return rr, offset
 }
 
+// Print returns a formatted string representation of the resource record, including its name, TTL, type, class, and data.
 func (rr ResourceRecord) Print() string {
 	switch rr.RecordType {
 	case A:
@@ -118,6 +126,7 @@ func (rr ResourceRecord) Print() string {
 	}
 }
 
+// String returns a string representation of the resource record in a format suitable for DNS message construction.
 func (rr ResourceRecord) String() string {
 	recordType := fmt.Sprintf("%04x", rr.RecordType)
 	class := fmt.Sprintf("%04x", rr.Class)
@@ -145,10 +154,12 @@ func (rr ResourceRecord) String() string {
 	return EncodeDomainName(rr.Name) + recordType + class + ttl + dataLength + data
 }
 
+// GetType returns the string representation of the resource record type.
 func (rr ResourceRecord) GetType() string {
 	return GetResourceRecordType(rr.RecordType)
 }
 
+// NewOPTRecord creates a new OPT resource record with the specified UDP size.
 func NewOPTRecord(udpSize uint16) ResourceRecord {
 	return ResourceRecord{
 		Name:       "",
