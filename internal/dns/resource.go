@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net/netip"
 )
 
@@ -114,7 +115,7 @@ func (rr ResourceRecord) Print() string {
 		return fmt.Sprintf(" ; %s\t %d\t %s\t udp: %d\t\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), int(rr.Class))
 	default:
 		return fmt.Sprintf(" ; %s\t %d\t %s\t %s\n", rr.Name, int(rr.TTL), GetResourceRecordType(rr.RecordType), GetResourceRecordClass(rr.Class))
-	}	
+	}
 }
 
 func (rr ResourceRecord) String() string {
@@ -125,17 +126,19 @@ func (rr ResourceRecord) String() string {
 	data := ""
 	switch rr.RecordType {
 	case A:
-		ip, ok := netip.AddrFromSlice([]byte(rr.Data))
-		if ok {
-			data = hex.EncodeToString(ip.AsSlice())
+		ip, err := netip.ParseAddr(rr.Data)
+		if err != nil {
+			log.Fatalf("invalid ipv4 address : %v", err)
 		}
+		data = hex.EncodeToString(ip.AsSlice())
 	case NS, CNAME:
 		data = EncodeDomainName(rr.Data)
 	case AAAA:
-		ip, ok := netip.AddrFromSlice([]byte(rr.Data))
-		if ok {
-			data = hex.EncodeToString(ip.AsSlice())
+		ip, err := netip.ParseAddr(rr.Data)
+		if err != nil {
+			log.Fatalf("invalid ipv6 address : %v", err)
 		}
+		data = hex.EncodeToString(ip.AsSlice())
 	default:
 		data = rr.Data
 	}
@@ -144,4 +147,15 @@ func (rr ResourceRecord) String() string {
 
 func (rr ResourceRecord) GetType() string {
 	return GetResourceRecordType(rr.RecordType)
+}
+
+func NewOPTRecord(udpSize uint16) ResourceRecord {
+	return ResourceRecord{
+		Name:       "",
+		RecordType: 41,
+		Class:      udpSize,
+		TTL:        0,
+		DataLength: 0,
+		Data:       "",
+	}
 }
