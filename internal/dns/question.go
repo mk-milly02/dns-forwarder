@@ -72,11 +72,15 @@ func DecodeDomainName(b []byte, offset int) (string, int) {
 		if length == 0 {
 			break
 		}
-		name .WriteString(string(b[cOffset+1 : cOffset+1+length]))
+		name.WriteString(string(b[cOffset+1 : cOffset+1+length]))
 		cOffset += length + 1
 		if b[cOffset] != 0 {
-			name .WriteString(".")
+			name.WriteString(".")
 		}
 	}
 	return name.String(), offset
+}
+
+func NewQuestion(name string, recordType, class uint16) Question {
+	return Question{name, recordType, class}
 }
