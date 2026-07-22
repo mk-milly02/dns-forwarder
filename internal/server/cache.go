@@ -44,7 +44,7 @@ func NewCache(expirationTime time.Duration, cleanUpInterval time.Duration) *Cach
 
 // Put adds a new record to the cache with the specified key and value, along with the current timestamp.
 func (c *Cache) Put(key string, value dns.ResourceRecord) {
-	log.Printf("cache put: key >> %s\n", key)
+	log.Printf("cache[put]: key >> %s\n", key)
 	c.mutex.Lock()
 	c.records[key] = &record{tag: fmt.Sprintf("%s-%s", value.GetType(), value.Name), record: value, timestamp: time.Now()}
 	c.mutex.Unlock()
@@ -56,10 +56,10 @@ func (c *Cache) Get(key string) (dns.ResourceRecord, error) {
 	defer c.mutex.Unlock()
 	result, present := c.records[key]
 	if !present {
-		log.Printf("cache get: key: %s, value: not found\n", key)
+		log.Printf("cache[get]: key: %s, value: not found\n", key)
 		return dns.ResourceRecord{}, errors.New("cache entry is not present")
 	}
-	log.Printf("cache get: key [%s]\n", key)
+	log.Printf("cache[get]: key [%s]\n", key)
 	return result.record, nil
 }
 
@@ -74,16 +74,16 @@ func (c *Cache) GetAll(tag string) ([]dns.ResourceRecord, error) {
 		}
 	}
 	if len(result) == 0 {
-		log.Printf("cache get all: tag: %s, value: not found\n", tag)
+		log.Printf("cache[get-all]: tag: %s, value: not found\n", tag)
 		return nil, errors.New("cache entry is not present")
 	}
-	log.Printf("cache get all: tag [%s]\n", tag)
+	log.Printf("cache[get-all]: tag [%s]\n", tag)
 	return result, nil
 }
 
 // Remove removes a record from the cache by its key.
 func (c *Cache) Remove(key string) {
-	log.Printf("cache delete: key: %s\n", key)
+	log.Printf("cache[delete]: key: %s\n", key)
 	c.mutex.Lock()
 	delete(c.records, key)
 	c.mutex.Unlock()
@@ -96,7 +96,7 @@ func (c *Cache) Clean(currentTime time.Time) {
 	defer c.mutex.Unlock()
 	for k, v := range c.records {
 		if currentTime.After(v.timestamp.Add(c.ttl)) {
-			log.Printf("cleaning up %s\n", k)
+			log.Printf("cache[clean]: %s\n", k)
 			delete(c.records, k)
 		}
 	}
