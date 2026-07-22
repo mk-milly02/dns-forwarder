@@ -31,9 +31,7 @@ This project was built primarily as a learning exercise to better understand:
 
 ## Architecture
 
-```
-
-
+![image](docs/architecture.png)
 
 ### Request Flow
 
@@ -145,6 +143,8 @@ Return Response
 
 Subsequent requests for `example.com` are served directly from cache until the TTL expires.
 
+![image](docs/example.png)
+
 ---
 
 ## Current Status
@@ -176,6 +176,7 @@ Planned
 
 - RFC 1035 - Domain Names - Implementation and Specification
 - RFC 1034 - Domain Names - Concepts and Facilities
+- https://codingchallenges.fyi/challenges/challenge-dns-forwarder
 
 ---
 
